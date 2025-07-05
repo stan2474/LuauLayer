@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+.vs/
+vcpkg_installed/
+LuauLayer/
+Release/
+/LuauLayer.vcxproj.filters
+/LuauLayer.vcxproj.user
