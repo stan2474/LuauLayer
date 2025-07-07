@@ -1,4 +1,4 @@
-﻿#include "hooks.h"
+﻿#include "hooks.h" 
 #include "Minhook.h"
 #include <stdio.h>
 #include <Luau/lcommon.h>
@@ -214,7 +214,7 @@ bool __cdecl lua51_toboolean(lua_State* L, int idx) {
     return lua_toboolean(L, idx);
 }
 const char* __cdecl lua51_typename(lua_State* L, int t) {
-	return lua_typename(L, t);
+    return lua_typename(L, t);
 }
 const void* __cdecl lua51_topointer(lua_State* L, int idx) {
     return lua_topointer(L, idx);
@@ -269,8 +269,26 @@ lua_CFunction __cdecl lua51_atpanic(lua_State* L, lua_CFunction panicf)
 
 int __cdecl lua51_type(lua_State* L, int index)
 {
-	int type = lua_type(L, index);
-    return type;
+    int type = lua_type(L, index);
+
+    switch (type)
+    {
+    case LUA_TNIL:            return 0;
+    case LUA_TBOOLEAN:        return 1;
+    case LUA_TLIGHTUSERDATA:  return 2;
+    case LUA_TNUMBER:         return 3;
+    case LUA_TVECTOR:
+    case LUA_TBUFFER:
+        return 0;
+    case LUA_TSTRING:         return 4;
+    case LUA_TTABLE:          return 5;
+    case LUA_TFUNCTION:       return 6;
+    case LUA_TUSERDATA:       return 7;
+    case LUA_TTHREAD:         return 8;
+
+    default:
+        return 0;
+    }
 }
 
 void __cdecl lua51_call(lua_State* L, int nargs, int nresults)
@@ -304,6 +322,7 @@ int __cdecl lua51_open_base(lua_State* L)
 
 int lua51L_ref(lua_State* L, int idx)
 {
+    assert(idx == LUA_REGISTRYINDEX);
     int r = lua_ref(L, -1);
     lua_pop(L, 1);
     return r;
@@ -428,8 +447,6 @@ int __cdecl lua51_getstack(lua_State* L, int level, lua_Debug* ar51)
     return lua_getinfo(L, level, "n", ar51);
 }
 
-// TODO: stack traces
-// only reason why it doesn't currently exist is due to some weird behavior I was facing
 void __cdecl reportError(lua_State* L)
 {
     char handle_buf[16];
@@ -445,10 +462,24 @@ void __cdecl reportError(lua_State* L)
         lua_pop(L, 1);
         return;
     }
-    sub_571E10(handle, 1, "Stack traces are not currently supported.", "");
+
+    lua_Debug ar;
+    int level = 0;
+    while (lua_getinfo(L, level, "sln", &ar))
+    {
+        const char* source = ar.source ? ar.source : "Unknown";
+        const char* name = ar.name ? ar.name : "(null)";
+
+        if (level != 0) {
+            sub_571E10(handle, 1, "stack %s, line %d: %s", source, ar.currentline, name);
+        }
+
+        level++;
+    }
+
+    sub_571E10(handle, 1, "stack end");
     lua_pop(L, 1);
 }
-
 bool InstallLuaHook()
 {
     if (MH_Initialize() != MH_OK) return false;
@@ -531,7 +562,8 @@ bool InstallLuaHook()
         {0x5C96F0, (LPVOID)&lua51_pushfstring,     (LPVOID*)&original_pushfstring},
         {0x5C9540, (LPVOID)&lua51_topointer,       (LPVOID*)&original_topointer},
         {0x5CAD80, (LPVOID)&lua51L_checkany,       (LPVOID*)&originalL_checkany},
-        {0x5CABE0, (LPVOID)&lua51L_argerror,       (LPVOID*)&originalL_argerror}
+        {0x5CABE0, (LPVOID)&lua51L_argerror,       (LPVOID*)&originalL_argerror},
+        {0x5C95B0, (LPVOID)&lua51_pushnil,         (LPVOID*)&original_pushnil}
     };
 
     for (auto& h : hooks)
