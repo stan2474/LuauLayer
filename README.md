@@ -14,5 +14,4 @@ Wrapping Lua 5.1 calls to Luau to achieve Luau execution in older versions of RO
 7. Click "Add to list", then click "ADD" and close StudPE by clicking the "OK" button in the bottom right corner.
 
 ## Known bugs
-1. Stack traces do not currently work and say "Stack traces are not currently supported."
-2. Some functions instantly crash you. Notable ones are ``game:FindFirstChild`` and ``game:GetService`` (``game:service`` included, if you can, suggest you to do ``game["service name"]``). 
+No currently known bugs.
