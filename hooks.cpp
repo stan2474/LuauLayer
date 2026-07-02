@@ -316,6 +316,10 @@ int __cdecl lua51_open_base(lua_State* L)
         lua_pushcclosure(L, luaopen_debug, "LuauLayer", 0);
         lua_pushstring(L, "debug");
         lua_call(L, 1, 0);
+
+        lua_pushcclosure(L, luaopen_coroutine, "LuauLayer", 0);
+        lua_pushstring(L, "coroutine");
+        lua_call(L, 1, 0);
     }
     return v;
 }
